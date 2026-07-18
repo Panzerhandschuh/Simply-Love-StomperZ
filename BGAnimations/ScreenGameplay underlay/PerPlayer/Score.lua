@@ -25,9 +25,14 @@ local styletype = ToEnumShortString(GAMESTATE:GetCurrentStyle():GetStyleType())
 
 -- scores are not aligned symmetrically around screen.cx for aesthetic reasons
 -- and this is the cause of many code-induced headaches
+-- StomperZ's header is 40px rather than 80px, so the score rides higher within it.
+-- The horizontal placement is shared; unlike the pre-4.8.7 StomperZ layout, which
+-- hardcoded its own x values, this keeps the current aspect-ratio-aware positioning.
+local score_y = SL.Global.GameMode == "StomperZ" and 20 or 56
+
 local pos = {
-	[PLAYER_1] = { x=(_screen.cx - clamp(_screen.w, 640, 854)/4.3),  y=56 },
-	[PLAYER_2] = { x=(_screen.cx + clamp(_screen.w, 640, 854)/2.75), y=56 },
+	[PLAYER_1] = { x=(_screen.cx - clamp(_screen.w, 640, 854)/4.3),  y=score_y },
+	[PLAYER_2] = { x=(_screen.cx + clamp(_screen.w, 640, 854)/2.75), y=score_y },
 }
 
 local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(player)
@@ -87,7 +92,8 @@ return LoadFont(ThemePrefs.Get("ThemeFont") .. " numbers")..{
 	Name=pn.."Score",
 	InitCommand=function(self)
 		self:valign(1):horizalign(right)
-		self:zoom(0.5)
+		-- smaller in StomperZ to fit its half-height header
+		self:zoom(SL.Global.GameMode == "StomperZ" and 0.4 or 0.5)
 		if IsEX then
 			-- If EX Score, let's diffuse it to be the same as the ITG top window.
 			-- This will make it consistent with the EX Score Pane.

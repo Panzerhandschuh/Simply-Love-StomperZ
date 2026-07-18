@@ -75,6 +75,9 @@ local t = Def.ActorFrame{
 	end
 }
 
+-- decorative triangles shown in StomperZ mode
+t[#t+1] = LoadActor( THEME:GetPathB("", "Triangles.lua") )
+
 -- centered text like "Page 2/5" where
 -- 2 is the current page the player is viewing, and
 -- 5 is the total number of pages
@@ -88,7 +91,11 @@ t[#t+1] = LoadFont(ThemePrefs.Get("ThemeFont") .. " Bold")..{
 }
 
 
-t[#t+1] = LoadActor("./LetterGrades.lua")
+-- StomperZ doesn't show letter grades, so don't build the offscreen
+-- ActorFrame that PlayerStageStats.lua proxies them out of
+if SL.Global.GameMode ~= "StomperZ" then
+	t[#t+1] = LoadActor("./LetterGrades.lua")
+end
 
 -- -----------------------------------------------------------------------
 -- 4 rows

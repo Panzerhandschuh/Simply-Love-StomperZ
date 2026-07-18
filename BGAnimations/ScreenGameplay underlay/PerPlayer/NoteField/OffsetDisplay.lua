@@ -6,6 +6,10 @@ local mods = SL[ToEnumShortString(player)].ActiveModifiers
 
 if not mods.ErrorMSDisplay then return end
 
+-- like the ErrorBar, this colours its offsets against ITG timing windows,
+-- so it is not offered in StomperZ.  See ./ErrorBar/default.lua
+if SL.Global.GameMode == "StomperZ" then return end
+
 local judgmentColors = {
     TapNoteScore_W1 = SL.JudgmentColors[SL.Global.GameMode][1],
     TapNoteScore_W2 = SL.JudgmentColors[SL.Global.GameMode][2],

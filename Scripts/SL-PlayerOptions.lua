@@ -636,6 +636,13 @@ local Overrides = {
 			if not IsUsingWideScreen() then
 				table.remove(vals, 4)
 			end
+
+			-- StomperZ raises the receptors into the space the upper NPS graph
+			-- would occupy, so the graph is not offered there.
+			if SL.Global.GameMode == "StomperZ" then
+				local i = FindInTable("NPSGraphAtTop", vals)
+				if i then table.remove(vals, i) end
+			end
 			return vals
 		end,
 	},
@@ -950,6 +957,12 @@ local Overrides = {
 				end
 			end
 		end
+	},
+	-------------------------------------------------------------------------
+	-- only presented in StomperZ; see the LineNames conditional for
+	-- [ScreenPlayerOptions2] in metrics.ini
+	ReceptorArrowsPosition = {
+		Choices = { "StomperZ", "ITG" },
 	},
 	-------------------------------------------------------------------------
 	LifeMeterType = {

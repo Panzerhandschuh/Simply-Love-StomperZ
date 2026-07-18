@@ -1,8 +1,12 @@
 local player = ...
 local pn = ToEnumShortString(player)
 
+-- StomperZ raises the receptors into the space this graph would occupy,
+-- so it is not offered there; the option row is hidden in StomperZ, but check
+-- here as well so a player profile can't smuggle it in
 if not SL[pn].ActiveModifiers.NPSGraphAtTop
 or SL.Global.GameMode == "Casual"
+or SL.Global.GameMode == "StomperZ"
 then
 	return
 end

@@ -1,3 +1,6 @@
+-- StomperZ's scoring weights don't map onto ITG letter grades, so don't show one
+if SL.Global.GameMode == "StomperZ" then return end
+
 local player = ...
 
 local AwardMap = {

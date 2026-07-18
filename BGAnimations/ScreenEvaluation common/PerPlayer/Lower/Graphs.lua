@@ -83,6 +83,20 @@ else
 	}
 end
 
+-- the halfway mark for the lifebar; only visible in StomperZ, which starts at
+-- full life and treats the 50% mark as its danger threshold
+af[#af+1] = Def.Quad{
+	Name="LifeBarGraph_MidwayQuad",
+	InitCommand=function(self)
+		if SL.Global.GameMode ~= "StomperZ" then
+			self:visible(false)
+			return
+		end
+		self:diffuse(0,0,0,0.75):y(GraphHeight):vertalign(bottom)
+			:zoomto( GraphWidth, GraphHeight/2 )
+	end
+}
+
 af[#af+1] = LoadActor("./ScatterPlot.lua", {player=player, GraphWidth=GraphWidth, GraphHeight=GraphHeight} )
 
 -- The GraphDisplay provided by the engine provides us a solid color histogram detailing

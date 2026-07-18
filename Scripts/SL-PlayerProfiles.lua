@@ -236,6 +236,10 @@ LoadProfileCustom = function(profile, dir)
 				end
 			end
 		end
+
+		-- The profile may have supplied modifiers that don't apply to the current
+		-- GameMode; discard those now that everything else has been read in.
+		EnforceGameModeModifiers(player)
 	end
 
 	return true

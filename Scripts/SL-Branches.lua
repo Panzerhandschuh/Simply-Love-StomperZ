@@ -150,7 +150,10 @@ Branch.AllowScreenSelectPlayMode2 = function()
 	SetGameModePreferences()
 	-- and reload the theme's Metrics
 	THEME:ReloadMetrics()
-	if SL.Global.GameMode == "ITG" and ThemePrefs.Get("AllowScreenSelectPlayMode2") then
+	-- Casual has its own simplified flow and never reaches the Regular/Marathon
+	-- chooser; ITG and StomperZ both do
+	if (SL.Global.GameMode == "ITG" or SL.Global.GameMode == "StomperZ")
+	and ThemePrefs.Get("AllowScreenSelectPlayMode2") then
 		return "ScreenSelectPlayMode2"
 	else
 		return "ScreenProfileLoad"

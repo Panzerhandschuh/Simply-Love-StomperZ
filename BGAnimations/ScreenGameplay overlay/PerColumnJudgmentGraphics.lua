@@ -204,7 +204,7 @@ for columnIndex=1,numColumns do
 					self:Load( THEME:GetPathG("", "_judgments/Love") )
 
 				else
-					self:Load( THEME:GetPathG("", "_judgments/" .. judgments_to_load) )
+					self:Load( THEME:GetPathG("", GetJudgmentGraphicPath(judgments_to_load)) )
 				end
 			end,
 		},

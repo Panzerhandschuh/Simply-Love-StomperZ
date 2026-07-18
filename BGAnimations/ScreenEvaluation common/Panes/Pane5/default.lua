@@ -20,6 +20,7 @@ local worst_window = GetTimingWindow(num_judgments_available)
 local abbreviations = {
 	ITG = { "Fan", "Ex", "Gr", "Dec", "WO" },
 	["FA+"] = { "Fan", "Fan", "Ex", "Gr", "Dec" },
+	StomperZ = { "Perf", "Gr", "Good", "Hit", "" },
 }
 
 local colors = {}
@@ -117,6 +118,12 @@ pane[#pane+1] = Def.Quad{
 			:zoomto(1, pane_height - (topbar_height+bottombar_height) )
 			:vertalign(bottom):xy(x, 0)
 			:diffuse(1,1,1,0.666)
+
+		-- StomperZ's histogram sits on a light background, so the centre line
+		-- needs to be dark to stay visible
+		if SL.Global.GameMode == "StomperZ" then
+			self:diffuse(0,0,0,0.666)
+		end
 	end,
 }
 

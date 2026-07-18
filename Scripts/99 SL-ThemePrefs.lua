@@ -79,8 +79,9 @@ SL_CustomPrefs.Get = function()
 			Choices = {
 				THEME:GetString("ScreenSelectPlayMode", "Casual"),
 				THEME:GetString("ScreenSelectPlayMode", "ITG"),
+				THEME:GetString("ScreenSelectPlayMode", "StomperZ"),
 			},
-			Values = { "Casual", "ITG" }
+			Values = { "Casual", "ITG", "StomperZ" }
 		},
 		DefaultSort =
 		{

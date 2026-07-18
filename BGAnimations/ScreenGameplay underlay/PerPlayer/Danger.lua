@@ -1,6 +1,9 @@
 -- there aren't meaningful life delta values in Casual
 -- so these danger/fail flashes should never be possible there
-if SL.Global.GameMode == "Casual" then return end
+--
+-- StomperZ is excluded as well: its LifeMeter communicates danger through its own
+-- colour transitions, and it sits in the space the red flash would occupy
+if SL.Global.GameMode == "Casual" or SL.Global.GameMode == "StomperZ" then return end
 
 -- ------------------------------------------------------------------
 

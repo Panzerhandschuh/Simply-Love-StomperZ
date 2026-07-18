@@ -84,7 +84,8 @@ end
 local style = GAMESTATE:GetCurrentStyle(player)
 local width = style:GetWidth(player)
 
-local y_offset = 80
+-- StomperZ's header is half height, so the column flash starts higher up
+local y_offset = SL.Global.GameMode == "StomperZ" and 40 or 80
 
 local FlashColumn=function(self, params)
 	if params.Player ~= player then return end

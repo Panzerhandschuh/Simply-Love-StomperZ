@@ -347,7 +347,7 @@ return Def.ActorFrame{
 				self:Load( THEME:GetPathG("", "_judgments/Love") )
 
 			else
-				self:Load( THEME:GetPathG("", "_judgments/" .. file_to_load) )
+				self:Load( THEME:GetPathG("", GetJudgmentGraphicPath(file_to_load)) )
 			end
 			-- local mini = mods.Mini:gsub("%%","") / 100
 			-- self:addx((mods.NoteFieldOffsetX * (1 + mini)) * 2)
@@ -379,7 +379,7 @@ return Def.ActorFrame{
 				self:Load( THEME:GetPathG("", "_judgments/Love") )
 
 			else
-				self:Load( THEME:GetPathG("", "_judgments/" .. file_to_load) )
+				self:Load( THEME:GetPathG("", GetJudgmentGraphicPath(file_to_load)) )
 			end
 		end,
 		ResetFaultCommand=function(self) self:finishtweening():stopeffect():visible(false) end

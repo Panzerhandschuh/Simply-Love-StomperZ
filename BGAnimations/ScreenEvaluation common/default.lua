@@ -45,6 +45,10 @@ end
 -- -----------------------------------------------------------------------
 -- First, add actors that would be the same whether 1 or 2 players are joined.
 
+-- ../Triangles.lua; decorative, and shows up only if we're in StomperZ mode.
+-- loaded first so that it sits behind everything else on the screen.
+t[#t+1] = LoadActor( THEME:GetPathB("", "Triangles.lua") )
+
 -- code for triggering a screenshot and animating a "screenshot" texture
 t[#t+1] = LoadActor("./Shared/ScreenshotHandler.lua")
 

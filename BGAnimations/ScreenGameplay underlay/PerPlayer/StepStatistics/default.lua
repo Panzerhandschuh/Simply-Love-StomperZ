@@ -27,7 +27,8 @@ end
 -- -----------------------------------------------------------------------
 -- positioning and sizing of side pane
 
-local header_height   = 80
+-- must match the Quad in ../../Shared/Header.lua, which StomperZ halves
+local header_height   = SL.Global.GameMode == "StomperZ" and 40 or 80
 local notefield_width = GetNotefieldWidth()
 local sidepane_width  = _screen.w/2
 local sidepane_pos_x  = _screen.w * (player==PLAYER_1 and 0.75 or 0.25)

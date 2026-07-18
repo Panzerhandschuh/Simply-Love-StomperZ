@@ -346,7 +346,7 @@ ValidForGrooveStats = function(player)
 
 	-- GrooveStats was made with ITG settings in mind.
 	-- FA+ is okay because it just halves ITG's TimingWindowW1 but keeps everything else the same.
-	-- Casual (and Experimental, Demonic, etc.) uses different settings
+	-- StomperZ and Casual (and Experimental, Demonic, etc.) use different settings
 	-- that are incompatible with GrooveStats ranking.
 	valid[4] = SL.Global.GameMode == "ITG"
 

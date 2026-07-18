@@ -227,6 +227,12 @@ GetComboThreshold = function( MaintainOrContinue )
 	-- include dummy values here to prevent Lua errors in case players accidentally switch to lights
 	Combo.lights  = { Maintain = "TapNoteScore_W3", Continue = "TapNoteScore_W3" }
 
+	-- StomperZ counts Good (W4) toward combo, matching its MinStayAlive threshold.
+	-- para is left alone; its thresholds are deliberately tuned to PARASTAR.
+	if SL.Global.GameMode == "StomperZ" then
+		Combo.dance = { Maintain = "TapNoteScore_W4", Continue = "TapNoteScore_W4" }
+	end
+
 	local game = GAMESTATE:GetCurrentGame():GetName() or "dance"
 	return Combo[game][MaintainOrContinue]
 end
@@ -334,8 +340,35 @@ end
 
 -- -----------------------------------------------------------------------
 
+-- Some modifiers are only meaningful in particular GameModes.  Removing their
+-- OptionRows (see LineNames for [ScreenPlayerOptions2] in metrics.ini) stops a player
+-- setting them, but a *profile* can still carry them in -- and profiles are loaded on
+-- ScreenProfileLoad, which Branch.AllowScreenSelectPlayMode2() routes to *after* it
+-- calls SetGameModePreferences().  So clamping only there is not enough; this is also
+-- called from LoadProfileCustom() once profile values have been applied.
+EnforceGameModeModifiers = function(player)
+	local pn = ToEnumShortString(player)
+	local mods = SL[pn].ActiveModifiers
+	if not mods then return end
+
+	if SL.Global.GameMode == "StomperZ" then
+		-- EX scoring and the FA+ white window are both defined in terms of ITG's
+		-- timing windows and scoring weights, neither of which StomperZ shares.
+		-- Left enabled, the FA+ overlay paints white over the 13.5-21.5ms slice of
+		-- StomperZ's Gr window in the ScreenEvaluation offset histogram.
+		mods.ShowFaPlusWindow = false
+		mods.ShowExScore = false
+		mods.ShowFaPlusPane = false
+
+		-- StomperZ's raised receptors occupy the space the upper NPS graph would use.
+		-- Forcing this off also keeps the score, BPM, and StepStats layouts on their
+		-- normal (non-NPS) branches.
+		mods.NPSGraphAtTop = false
+	end
+end
+
 SetGameModePreferences = function()
-	-- apply the preferences associated with this SL GameMode (Casual, ITG)
+	-- apply the preferences associated with this SL GameMode (Casual, ITG, StomperZ)
 	for key,val in pairs(SL.Preferences[SL.Global.GameMode]) do
 		PREFSMAN:SetPreference(key, val)
 	end
@@ -350,6 +383,8 @@ SetGameModePreferences = function()
 		if SL.Global.GameMode == "Casual" then
 			SL[pn].ActiveModifiers.TimingWindows = {true,true,true,false,false}
 		end
+
+		EnforceGameModeModifiers(player)
 
 		-- Now that we've set the SL table for TimingWindows appropriately,
 		-- use it to apply TimingWindows.
@@ -375,7 +410,7 @@ SetGameModePreferences = function()
 	-- finally, load the Stats.xml file appropriate for this SL GameMode
 
 	-- these are the prefixes that are prepended to each custom Stats.xml, resulting in
-	-- Stats.xml, ECFA-Stats.xml, Casual-Stats.xml
+	-- Stats.xml, ECFA-Stats.xml, Casual-Stats.xml, StomperZ-Stats.xml
 	local prefix = {}
 
 	-- ITG has no prefix and scores go directly into the main Stats.xml
@@ -383,6 +418,10 @@ SetGameModePreferences = function()
 	prefix["ITG"] = ""
 
 	prefix["Casual"] = "Casual-"
+
+	-- StomperZ scoring is not comparable to ITG scoring, so its scores are
+	-- kept in their own file rather than polluting the main Stats.xml
+	prefix["StomperZ"] = "StomperZ-"
 
 	if PROFILEMAN:GetStatsPrefix() ~= prefix[SL.Global.GameMode] then
 		PROFILEMAN:SetStatsPrefix(prefix[SL.Global.GameMode])
@@ -394,7 +433,7 @@ end
 -- manages for you back to their stock SM5 values.
 --
 -- These "managed" Preferences are listed in ./Scripts/SL_Init.lua
--- per-gamemode (Casual, ITG), and actively applied (and reapplied)
+-- per-gamemode (Casual, ITG, StomperZ), and actively applied (and reapplied)
 -- for each new game using SetGameModePreferences()
 --
 -- SL normally calls ResetPreferencesToStockSM5() from
@@ -494,8 +533,26 @@ StripSpriteHints = function(filename)
 	return filename:gsub(" %d+x%d+", ""):gsub(" %(doubleres%)", ""):gsub(".png", "")
 end
 
+-- StomperZ labels its windows Perfect/Great/Good/Hit rather than
+-- Fantastic/Excellent/Great/Decent/Way Off, so it cannot share the common judgment
+-- graphics; it has its own (2x6) set under _judgments/StomperZ/.
+--
+-- Note that the common set and the StomperZ set contain same-named fonts (Code, Miso,
+-- Roboto).  StripSpriteHints() reduces both "Code 2x6 (doubleres).png" and
+-- "Code 2x7 (doubleres).png" to "Code", so the two sets must stay in separate
+-- directories rather than being merged into one list with duplicate display names.
+JudgmentGraphicDirectory = function()
+	return SL.Global.GameMode == "StomperZ" and "_judgments/StomperZ" or "_judgments"
+end
+
+-- Given a judgment graphic filename, return the theme-relative path to load it from.
+-- Use this rather than hardcoding "_judgments/"..filename at each call site.
+GetJudgmentGraphicPath = function(filename)
+	return JudgmentGraphicDirectory() .. "/" .. filename
+end
+
 GetJudgmentGraphics = function()
-	local path = THEME:GetPathG('', '_judgments')
+	local path = THEME:GetPathG('', JudgmentGraphicDirectory())
 	local files = FILEMAN:GetDirListing(path .. '/')
 	local judgment_graphics = {}
 

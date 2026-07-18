@@ -60,6 +60,10 @@ local t = Def.ActorFrame{
 	end
 }
 
+-- loaded first so that it sits behind every other underlay actor;
+-- only draws anything in StomperZ
+t[#t+1] = LoadActor("./Shared/StomperZBackground.lua")
+
 for player in ivalues(Players) do
 	if not SL[ToEnumShortString(player)].ActiveModifiers.BreakUI then
 		t[#t+1] = LoadActor("./PerPlayer/Danger.lua", player)

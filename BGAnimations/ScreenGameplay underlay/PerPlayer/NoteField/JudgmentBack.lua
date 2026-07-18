@@ -373,7 +373,7 @@ return Def.ActorFrame{
 				self:Load( THEME:GetPathG("", "_judgments/Love") )
 
 			else
-				self:Load( THEME:GetPathG("", "_judgments/" .. file_to_load) )
+				self:Load( THEME:GetPathG("", GetJudgmentGraphicPath(file_to_load)) )
 			end
 		end,
 		ResetCommand=function(self) self:finishtweening():stopeffect():visible(false) end
@@ -401,7 +401,7 @@ return Def.ActorFrame{
 				self:Load( THEME:GetPathG("", "_judgments/Love") )
 
 			else
-				self:Load( THEME:GetPathG("", "_judgments/" .. file_to_load) )
+				self:Load( THEME:GetPathG("", GetJudgmentGraphicPath(file_to_load)) )
 			end
 		end,
 		ResetFaultCommand=function(self) self:finishtweening():stopeffect():visible(false) end

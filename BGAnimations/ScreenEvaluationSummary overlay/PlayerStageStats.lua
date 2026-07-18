@@ -175,22 +175,25 @@ af[#af+1] = LoadFont(ThemePrefs.Get("ThemeFont") .. " Normal")..{
 }
 
 -- letter grade
-af[#af+1] = Def.ActorProxy{
-	InitCommand=function(self)
-		self:zoom(WideScale(0.275,0.3)):x( WideScale(194,250) * (player==PLAYER_1 and -1 or 1) ):y(-6)
-	end,
-	DrawStageCommand=function(self)
-		if playerStats and grade then
-			if playerStats.judgments.W0 and playerStats.exscore == 100 then
-				self:SetTarget( LetterGradesAF:GetChild("Grade_Tier00") ):visible(true)
+-- StomperZ's scoring weights don't map onto ITG letter grades, so it doesn't get one
+if SL.Global.GameMode ~= "StomperZ" then
+	af[#af+1] = Def.ActorProxy{
+		InitCommand=function(self)
+			self:zoom(WideScale(0.275,0.3)):x( WideScale(194,250) * (player==PLAYER_1 and -1 or 1) ):y(-6)
+		end,
+		DrawStageCommand=function(self)
+			if playerStats and grade then
+				if playerStats.judgments.W0 and playerStats.exscore == 100 then
+					self:SetTarget( LetterGradesAF:GetChild("Grade_Tier00") ):visible(true)
+				else
+					self:SetTarget( LetterGradesAF:GetChild(grade) ):visible(true)
+				end
 			else
-				self:SetTarget( LetterGradesAF:GetChild(grade) ):visible(true)
+				self:visible(false)
 			end
-		else
-			self:visible(false)
 		end
-	end
-}
+	}
+end
 
 
 -- numbers

@@ -43,6 +43,7 @@ local PlayerDefaults = {
 				TargetScoreNumber = 100,
 				ActionOnMissedTarget = "Nothing",
 				Pacemaker = false,
+				ReceptorArrowsPosition = "StomperZ",
 				LifeMeterType = "Standard",
 				NPSGraphAtTop = false,
 				JudgmentTilt = false,
@@ -293,6 +294,14 @@ SL = {
 			color("#b45cff"),	-- purple (greatly lightened)
 			color("#ff3030")	-- red (slightly lightened)
 		},
+		StomperZ = {
+			color("#5b2b8e"),	-- purple
+			color("#0073ff"),	-- dark blue
+			color("#66c955"),	-- green
+			color("#e29c18"),	-- gold
+			color("#dddddd"),	-- grey
+			color("#ff0000")	-- red
+		},
 	},
 	Preferences = {
 		Casual = {
@@ -362,6 +371,28 @@ SL = {
 			-- https://github.com/stepmania/stepmania/issues/1896
 			-- it's as good as "fixed" for the very very large majority of
 			-- cases so we can set this back to 70ms now.
+			TimingWindowSecondsMine=0.070000,
+			TimingWindowSecondsRoll=0.350000,
+		},
+		StomperZ = {
+			TimingWindowAdd=0,
+			RegenComboAfterMiss=0,
+			MaxRegenComboAfterMiss=0,
+			MinTNSToHideNotes="TapNoteScore_W4",
+			-- StomperZ intentionally does not set MinTNSToScoreNotes; the
+			-- RescoreEarlyHits ThemePref only applies to ITG and FA+ windows.
+			HarshHotLifePenalty=false,
+
+			PercentageScoring=true,
+			AllowW1="AllowW1_Everywhere",
+			SubSortByNumSteps=true,
+
+			TimingWindowSecondsW1=0.012500,
+			TimingWindowSecondsW2=0.025000,
+			TimingWindowSecondsW3=0.050000,
+			TimingWindowSecondsW4=0.100000,
+			TimingWindowSecondsW5=0.10000,
+			TimingWindowSecondsHold=0.20000,
 			TimingWindowSecondsMine=0.070000,
 			TimingWindowSecondsRoll=0.350000,
 		},
@@ -481,6 +512,42 @@ SL = {
 			LifePercentChangeHitMine=-0.05,
 
 			InitialValue=0.5,
+		},
+		StomperZ = {
+			PercentScoreWeightW1=10,
+			PercentScoreWeightW2=9,
+			PercentScoreWeightW3=8,
+			PercentScoreWeightW4=5,
+			PercentScoreWeightW5=0,
+			PercentScoreWeightMiss=0,
+			PercentScoreWeightLetGo=0,
+			PercentScoreWeightHeld=10,
+			PercentScoreWeightHitMine=-5,
+			PercentScoreWeightCheckpointHit=0,
+
+			GradeWeightW1=10,
+			GradeWeightW2=9,
+			GradeWeightW3=8,
+			GradeWeightW4=5,
+			GradeWeightW5=0,
+			GradeWeightMiss=0,
+			GradeWeightLetGo=0,
+			GradeWeightHeld=10,
+			GradeWeightHitMine=-5,
+			GradeWeightCheckpointHit=0,
+
+			LifePercentChangeW1=0.004,
+			LifePercentChangeW2=0.004,
+			LifePercentChangeW3=0.004,
+			LifePercentChangeW4=0.004,
+			LifePercentChangeW5=0,
+			LifePercentChangeMiss=-0.04,
+			LifePercentChangeLetGo=-0.04,
+			LifePercentChangeHeld=0,
+			LifePercentChangeHitMine=-0.04,
+
+			-- StomperZ starts at full life and drains toward a 0.5 danger threshold
+			InitialValue=1,
 		},
 	},
 	ExWeights = {

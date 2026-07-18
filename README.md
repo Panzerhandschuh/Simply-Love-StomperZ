@@ -32,6 +32,7 @@ Only for itgmania. Please use the Default branch itgmania:release
   * Configure font used for various theme elements
   * BoogieStats integration
   * Ghost data and real-time score target
+  * StomperZ game mode, restored from pre-4.8.7 Simply Love (emulates a small set of Rhythm Horizon gameplay features)
 
 ## Features that are now in mainline Simply Love
 

@@ -125,6 +125,19 @@ if SL[pn].ActiveModifiers.Pacemaker then
 		local _y = 56
 		local zoomF = 0.4
 
+		-- special casing: StomperZ's raised receptors would sit on top of the normal
+		-- pacemaker position, so tuck it just above the combo instead
+		if SL.Global.GameMode == "StomperZ"
+		and SL[pn].ActiveModifiers.ReceptorArrowsPosition == "StomperZ" then
+			local NumColumns = GAMESTATE:GetCurrentStyle():ColumnsPerPlayer()
+			local column_width = GetNotefieldWidth() / NumColumns
+
+			self:horizalign(center):zoom(0.35):shadowlength(1) -- match other playfield counters
+			self:y( _screen.cy - 60 )
+			self:x( GetNotefieldX(player) + column_width * (player==PLAYER_1 and 1 or -1) )
+			return
+		end
+
 		local _x = {
 			[PLAYER_1] = GetNotefieldX(PLAYER_1) + 64,
 			[PLAYER_2] = GetNotefieldX(PLAYER_2) - 64
