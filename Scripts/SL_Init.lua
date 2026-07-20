@@ -176,6 +176,10 @@ local GlobalDefaults = {
 			}
 			self.ContinuesRemaining = ThemePrefs.Get("NumberOfContinuesAllowed") or 0
 			self.GameMode = ThemePrefs.Get("DefaultGameMode") or "ITG"
+			-- Which set of lifebar values to use; see SL.LifeDifficultyMetrics below.
+			-- Global rather than per-player because the engine's [LifeMeterBar] metrics
+			-- are read once for both players, not once per PlayerState.
+			self.LifeDifficulty = "ITG"
 			self.ScreenshotTexture = nil
 			self.MenuTimer = {
 				ScreenGrooveStatsLogin  = ThemePrefs.Get("ScreenGrooveStatsLoginMenuTimer"),
@@ -481,6 +485,47 @@ SL = {
 			LifePercentChangeHitMine=-0.05,
 
 			InitialValue=0.5,
+		},
+	},
+	-- "Life Difficulty" presets that override the LifePercentChange and InitialValue
+	-- metrics from SL.Metrics (above); read via GetLifeMetric() in SL-Helpers.lua.
+	--
+	-- There is deliberately no "ITG" entry here: ITG is the default and means "leave the
+	-- current GameMode's values alone", which is exactly what SL.Metrics already holds.
+	--
+	-- StomperZ is keyed by GameMode because FA+ shifts every timing window one tier.  The
+	-- values are mapped by judgment *name*, not by window slot: in FA+, W1 and W2 are both
+	-- Fantastics, W3 is Excellent, W4 is Great, W5 is Decent, and there is no Way Off
+	-- window at all.  Casual is intentionally absent -- it has no lifebar drain to begin with.
+	LifeDifficultyMetrics = {
+		StomperZ = {
+			ITG = {
+				LifePercentChangeW1=0.004,     -- Fantastic
+				LifePercentChangeW2=0.004,     -- Excellent
+				LifePercentChangeW3=0.004,     -- Great
+				LifePercentChangeW4=0,         -- Decent
+				LifePercentChangeW5=-0.040,    -- Way Off
+				LifePercentChangeMiss=-0.040,
+				LifePercentChangeLetGo=-0.040,
+				LifePercentChangeHeld=0,
+				LifePercentChangeHitMine=-0.040,
+
+				-- StomperZ starts the lifebar full rather than half.
+				InitialValue=1,
+			},
+			["FA+"] = {
+				LifePercentChangeW1=0.004,     -- Fantastic (blue)
+				LifePercentChangeW2=0.004,     -- Fantastic (white)
+				LifePercentChangeW3=0.004,     -- Excellent
+				LifePercentChangeW4=0.004,     -- Great
+				LifePercentChangeW5=0,         -- Decent
+				LifePercentChangeMiss=-0.040,
+				LifePercentChangeLetGo=-0.040,
+				LifePercentChangeHeld=0,
+				LifePercentChangeHitMine=-0.040,
+
+				InitialValue=1,
+			},
 		},
 	},
 	ExWeights = {

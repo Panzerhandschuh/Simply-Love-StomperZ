@@ -60,6 +60,22 @@ GetTimingWindow = function(n, mode, tenms)
 end
 
 -- -----------------------------------------------------------------------
+-- get a lifebar metric (LifePercentChangeW1, InitialValue, etc.) for the current
+-- GameMode, honoring the Life Difficulty the player picked in Advanced modifiers.
+--
+-- Used by metrics.ini under [LifeMeterBar].  Those metrics are cached by the engine,
+-- so anything that changes SL.Global.LifeDifficulty or SL.Global.GameMode has to call
+-- THEME:ReloadMetrics() afterwards for the new values to take effect.
+
+GetLifeMetric = function(name)
+	local preset = SL.LifeDifficultyMetrics[SL.Global.LifeDifficulty]
+	preset = preset and preset[SL.Global.GameMode]
+
+	if preset and preset[name] ~= nil then return preset[name] end
+	return SL.Metrics[SL.Global.GameMode][name]
+end
+
+-- -----------------------------------------------------------------------
 -- determines which timing_window an offset value (number) belongs to
 -- used by the judgment scatter plot and offset histogram in ScreenEvaluation
 
