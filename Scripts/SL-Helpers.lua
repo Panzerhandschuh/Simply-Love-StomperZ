@@ -64,11 +64,11 @@ end
 -- GameMode, honoring the Life Difficulty the player picked in Advanced modifiers.
 --
 -- Used by metrics.ini under [LifeMeterBar].  Those metrics are cached by the engine,
--- so anything that changes SL.Global.LifeDifficulty or SL.Global.GameMode has to call
+-- so anything that changes SL.Global.LifeBarDifficulty or SL.Global.GameMode has to call
 -- THEME:ReloadMetrics() afterwards for the new values to take effect.
 
 GetLifeMetric = function(name)
-	local preset = SL.LifeDifficultyMetrics[SL.Global.LifeDifficulty]
+	local preset = SL.LifeBarDifficultyMetrics[SL.Global.LifeBarDifficulty]
 	preset = preset and preset[SL.Global.GameMode]
 
 	if preset and preset[name] ~= nil then return preset[name] end

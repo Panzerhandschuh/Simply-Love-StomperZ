@@ -1010,6 +1010,7 @@ CreateGrooveStatsPlayerOptionKeys = function()
 			[1]="Standard",
 			[2]="Surround",
 			[3]="Vertical",
+			[4]="StomperZ",
 			-- Digital Dance
 			[100]="Top",
 		}),

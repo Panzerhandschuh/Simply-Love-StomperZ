@@ -952,21 +952,21 @@ local Overrides = {
 		end
 	},
 	-------------------------------------------------------------------------
-	-- Unlike its neighbors, LifeDifficulty is stored in SL.Global rather than in
+	-- Unlike its neighbors, LifeBarDifficulty is stored in SL.Global rather than in
 	-- SL[pn].ActiveModifiers.  The engine reads [LifeMeterBar] once for both players,
 	-- so this can't meaningfully differ between P1 and P2; presenting it as a per-player
 	-- row would just let one side silently overwrite the other.
-	LifeDifficulty = {
+	LifeBarDifficulty = {
 		Values = { "ITG", "StomperZ" },
 		OneChoiceForAllPlayers = true,
 		LoadSelections = function(self, list, pn)
-			local i = FindInTable(SL.Global.LifeDifficulty, self.Values) or 1
+			local i = FindInTable(SL.Global.LifeBarDifficulty, self.Values) or 1
 			list[i] = true
 			return list
 		end,
 		SaveSelections = function(self, list, pn)
 			for i, val in ipairs(self.Values) do
-				if list[i] then SL.Global.LifeDifficulty = val; break end
+				if list[i] then SL.Global.LifeBarDifficulty = val; break end
 			end
 			-- [LifeMeterBar]'s metrics are cached by the engine, so they have to be
 			-- re-read before ScreenGameplay constructs the LifeMeter.
@@ -975,7 +975,7 @@ local Overrides = {
 	},
 	-------------------------------------------------------------------------
 	LifeMeterType = {
-		Values = { "Standard", "Surround", "Vertical" },
+		Values = { "Standard", "Surround", "Vertical", "StomperZ" },
 	},
 	-------------------------------------------------------------------------
 	JudgmentFlash = {

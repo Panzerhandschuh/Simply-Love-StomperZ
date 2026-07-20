@@ -176,10 +176,10 @@ local GlobalDefaults = {
 			}
 			self.ContinuesRemaining = ThemePrefs.Get("NumberOfContinuesAllowed") or 0
 			self.GameMode = ThemePrefs.Get("DefaultGameMode") or "ITG"
-			-- Which set of lifebar values to use; see SL.LifeDifficultyMetrics below.
+			-- Which set of lifebar values to use; see SL.LifeBarDifficultyMetrics below.
 			-- Global rather than per-player because the engine's [LifeMeterBar] metrics
 			-- are read once for both players, not once per PlayerState.
-			self.LifeDifficulty = "ITG"
+			self.LifeBarDifficulty = "ITG"
 			self.ScreenshotTexture = nil
 			self.MenuTimer = {
 				ScreenGrooveStatsLogin  = ThemePrefs.Get("ScreenGrooveStatsLoginMenuTimer"),
@@ -497,7 +497,7 @@ SL = {
 	-- values are mapped by judgment *name*, not by window slot: in FA+, W1 and W2 are both
 	-- Fantastics, W3 is Excellent, W4 is Great, W5 is Decent, and there is no Way Off
 	-- window at all.  Casual is intentionally absent -- it has no lifebar drain to begin with.
-	LifeDifficultyMetrics = {
+	LifeBarDifficultyMetrics = {
 		StomperZ = {
 			ITG = {
 				LifePercentChangeW1=0.004,     -- Fantastic
