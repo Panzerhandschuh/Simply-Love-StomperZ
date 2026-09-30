@@ -75,6 +75,7 @@ end
 t[#t+1] = LoadActor("./Shared/VersusStepStatistics.lua")
 t[#t+1] = LoadActor("./Shared/Header.lua")
 t[#t+1] = LoadActor("./Shared/SongInfoBar.lua") -- song title and progress bar
+t[#t+1] = LoadActor("./Shared/OnlinePersonalBest.lua") -- GrooveStats PBs to compare against on ScreenEvaluation
 
 -- per-player UI elements
 for player in ivalues(Players) do

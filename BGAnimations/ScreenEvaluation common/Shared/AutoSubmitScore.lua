@@ -173,6 +173,84 @@ local ScreenshotQR = function(playernum)
 	end
 end
 
+local FindSelfEntry = function(leaderboard)
+	if not leaderboard then return nil end
+	for entry in ivalues(leaderboard) do
+		if entry["isSelf"] then return entry end
+	end
+	return nil
+end
+
+-- Builds the data for the personal best box, which takes the event progress box's spot when the
+-- chart isn't part of an event. Scores are in hundredths of a percent, same as GrooveStats.
+--
+-- The previous bests come from the snapshot taken during gameplay (SL[pn].OnlinePB). If that's
+-- missing, they're worked out from submitData (this player's part of the scoreSubmit response),
+-- which is nil if the score wasn't submitted.
+local GetPersonalBestData = function(player, submitData)
+	local pn = ToEnumShortString(player)
+	local snapshot = SL[pn].OnlinePB
+	if snapshot and snapshot.Hash ~= SL[pn].Streams.Hash then snapshot = nil end
+
+	-- Event charts have their own progress box.
+	if snapshot and snapshot.IsEvent then return nil end
+	-- GrooveStats doesn't keep scores for unranked charts.
+	if (snapshot and not snapshot.IsRanked) or (submitData and submitData["isRanked"] == false) then return nil end
+	-- Nothing to compare against.
+	if not snapshot and not submitData then return nil end
+
+	local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(player)
+	local itg = { score=tonumber(("%.0f"):format(pss:GetPercentDancePoints() * 10000)) }
+	local ex = { score=tonumber(("%.0f"):format(CalculateExScore(player, GetExJudgmentCounts(player)) * 100)) }
+
+	if snapshot then
+		itg.prev, itg.prevKnown, itg.rank = snapshot.ITG, true, snapshot.ITGRank
+		ex.prev, ex.prevKnown, ex.rank = snapshot.EX, true, snapshot.EXRank
+	end
+
+	if submitData then
+		local itgSelf = FindSelfEntry(submitData["gsLeaderboard"])
+		local exSelf = FindSelfEntry(submitData["exLeaderboard"])
+		-- Ranks after the submission, which may have moved up.
+		if itgSelf then itg.rank = itgSelf["rank"] end
+		if exSelf then ex.rank = exSelf["rank"] end
+
+		if not snapshot then
+			local result = submitData["result"]
+			if result == "score-added" then
+				-- First score on GrooveStats for this chart.
+				itg.prevKnown, ex.prevKnown = true, true
+			else
+				if result == "improved" and submitData["scoreDelta"] then
+					itg.prev, itg.prevKnown = itg.score - submitData["scoreDelta"], true
+				elseif result == "score-not-improved" and itgSelf then
+					itg.prev, itg.prevKnown = itgSelf["score"], true
+				end
+				-- A higher EX score on the leaderboard is the previous best. Otherwise this score
+				-- replaced it, and the response doesn't say what the old best was.
+				if exSelf and exSelf["score"] > ex.score then
+					ex.prev, ex.prevKnown = exSelf["score"], true
+				end
+			end
+		end
+	end
+
+	return { itg=itg, ex=ex }
+end
+
+local ShowPersonalBest = function(overlay, player, submitData)
+	local pn = ToEnumShortString(player)
+	local upperPane = overlay:GetChild(pn.."_AF_Upper")
+	-- EventProgress doesn't get created when there isn't room for it.
+	local progressBox = upperPane and upperPane:GetChild("EventProgress"..pn)
+	if not progressBox then return end
+
+	local pbData = GetPersonalBestData(player, submitData)
+	if pbData then
+		progressBox:playcommand("SetData", {pbData=pbData})
+	end
+end
+
 local AutoSubmitRequestProcessor = function(res, overlay)
 	local P1SubmitText = overlay:GetChild("AutoSubmitMaster"):GetChild("P1SubmitText")
 	local P2SubmitText = overlay:GetChild("AutoSubmitMaster"):GetChild("P2SubmitText")
@@ -185,6 +263,10 @@ local AutoSubmitRequestProcessor = function(res, overlay)
 		elseif error or (res.statusCode ~= nil and res.statusCode ~= 200) then
 			if P1SubmitText then P1SubmitText:queuecommand("SubmitFailed") end
 			if P2SubmitText then P2SubmitText:queuecommand("SubmitFailed") end
+		end
+		-- Still compare against the bests fetched during gameplay.
+		for player in ivalues(GAMESTATE:GetHumanPlayers()) do
+			ShowPersonalBest(overlay, player, nil)
 		end
 		return
 	end
@@ -372,6 +454,9 @@ local AutoSubmitRequestProcessor = function(res, overlay)
 								end
 							end
 						end
+					elseif ToEnumShortString("PLAYER_P"..i) == "P"..side then
+						-- Charts outside of events fall back to the personal best box.
+						ShowPersonalBest(overlay, "PlayerNumber_P"..side, data[playerStr])
 					end
 
 					-- Only update PB/WR messages on the side that is joined
@@ -549,6 +634,8 @@ local af = Def.ActorFrame {
 						-- want to show that the first player score won't be submitted.
 						local submitText = self:GetParent():GetChild("P"..i.."SubmitText")
 						submitText:visible(false)
+						-- Still compare against the bests fetched during gameplay.
+						ShowPersonalBest(SCREENMAN:GetTopScreen():GetChild("Overlay"):GetChild("ScreenEval Common"), player, nil)
 					end
 				end
 			end

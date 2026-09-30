@@ -89,6 +89,37 @@ local CreateITLBody = function(itlData)
 	)
 end
 
+local NewScoreTag = "(New)"
+
+-- Scores are in hundredths of a percent so that deltas don't pick up floating point noise.
+local CreatePBBody = function(pbData)
+	local sections = {}
+
+	-- EX first since it's what matters most for competitive play.
+	for row in ivalues({ {"EX", pbData["ex"]}, {"ITG", pbData["itg"]} }) do
+		local label, data = row[1], row[2]
+		local section = string.format("%s: %.2f%%", label, data["score"]/100)
+
+		if data["prevKnown"] and data["prev"] == nil then
+			-- First score on GrooveStats for this chart, so there's nothing to compare against.
+			section = section .. " " .. NewScoreTag
+		elseif data["prevKnown"] then
+			-- ScaleAndColorizeBody colors the delta by its sign: green for better, red for worse.
+			-- A tie gets no sign so it stays the default color.
+			local delta = data["score"] - data["prev"]
+			local deltaFormat = delta == 0 and " (%.2f%%)" or " (%+.2f%%)"
+			section = section .. string.format(deltaFormat, delta/100)
+		end
+
+		if data["rank"] then
+			section = section .. string.format("\nRank: #%d", data["rank"])
+		end
+		sections[#sections+1] = section
+	end
+
+	return table.concat(sections, "\n\n")
+end
+
 -- Takes in an actor and both scales the text to fit within the box and
 -- colorizes the text.
 --
@@ -193,6 +224,17 @@ end
 local rpgLogoImage = THEME:GetPathG("", "_VisualStyles/SRPG10/logo_alt (doubleres).png")
 local rpgDailyImages = {}
 
+-- Ensure the header text fits within the box.
+local FitHeader = function(header)
+	for zoomVal=0.5, 0.1, -0.05 do
+		header:zoom(zoomVal)
+		header:wrapwidthpixels((paneWidth-6)/(zoomVal))
+		if header:GetHeight() * zoomVal <= RowHeight*2 then
+			break
+		end
+	end
+end
+
 local af = Def.ActorFrame{
 	Name="EventProgress"..pn,
 
@@ -237,15 +279,7 @@ local af = Def.ActorFrame{
 				RpgYellow)
 
 			self:GetChild("Header"):settext(params.rpgData["name"]:gsub("Stamina RPG", "SRPG"))
-
-			-- Ensure the header text fits within the box.
-			for zoomVal=0.5, 0.1, -0.05 do
-				self:GetChild("Header"):zoom(zoomVal)
-				self:GetChild("Header"):wrapwidthpixels((paneWidth-6)/(zoomVal))
-				if self:GetChild("Header"):GetHeight() * zoomVal <= RowHeight*2 then
-					break
-				end
-			end
+			FitHeader(self:GetChild("Header"))
 			self:queuecommand("RPG")
 		-- TODO: Add support for when a song is in both RPG and ITL
 		elseif params.itlData and not hasData then
@@ -261,15 +295,36 @@ local af = Def.ActorFrame{
 				ItlPink)
 
 			self:GetChild("Header"):settext(params.itlData["name"]:gsub("ITL Online", "ITL"))
+			FitHeader(self:GetChild("Header"))
+		-- Fallback for charts that aren't part of an event: compare against GrooveStats personal bests.
+		elseif params.pbData and not hasData then
+			hasData = true
+			local pbString = CreatePBBody(params.pbData)
+			ScaleAndColorizeBody(
+				self:GetChild("BodyText"),
+				pbString,
+				paneHeight - borderWidth,
+				paneWidth - borderWidth,
+				RowHeight,
+				Color.White)
 
-			-- Ensure the header text fits within the box.
-			for zoomVal=0.5, 0.1, -0.05 do
-				self:GetChild("Header"):zoom(zoomVal)
-				self:GetChild("Header"):wrapwidthpixels((paneWidth-6)/(zoomVal))
-				if self:GetChild("Header"):GetHeight() * zoomVal <= RowHeight*2 then
-					break
-				end
+			-- New scores are improvements too, so color the tag like a positive delta.
+			local offset = 1
+			while true do
+				local i, j = string.find(pbString, NewScoreTag, offset, true)
+				if i == nil then break end
+				self:GetChild("BodyText"):AddAttribute(i-1, {
+					Length=#NewScoreTag,
+					Diffuse=Color.Green
+				})
+				offset = j + 1
 			end
+
+			self:GetChild("Header"):settext("Personal Best")
+			FitHeader(self:GetChild("Header"))
+			self:queuecommand("PB")
+			-- There's no event overlay to dismiss first, so show the box right away.
+			self:visible(true)
 		end
 	end,
 
@@ -303,6 +358,23 @@ local af = Def.ActorFrame{
 		end,
 		RPGCommand=function(self)
 			self:visible(false)
+		end,
+		PBCommand=function(self)
+			self:visible(false)
+		end
+	},
+
+	-- GrooveStats logo for the personal best fallback
+	Def.Sprite {
+		Texture=THEME:GetPathG("", "GrooveStats.png"),
+		Name="GSLogo",
+		InitCommand=function(self)
+			self:zoom(0.6)
+			self:diffusealpha(0.2)
+			self:visible(false)
+		end,
+		PBCommand=function(self)
+			self:visible(true)
 		end
 	},
 	
