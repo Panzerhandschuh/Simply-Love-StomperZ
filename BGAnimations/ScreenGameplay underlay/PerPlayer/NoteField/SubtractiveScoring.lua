@@ -41,7 +41,7 @@ end
 -- which may not have arrived yet, and falls back to the profile's best.
 local GetPreviousBest = function()
 	local online = SL[pn].OnlinePB
-	if online and online.Hash == SL[pn].Streams.Hash and online.IsRanked then
+	if online and online.Hash == SL[pn].Streams.Hash then
 		local score = mods.ShowExScore and online.EX or online.ITG
 		if score then return score / 100 end
 	end

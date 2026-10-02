@@ -30,8 +30,6 @@ local LeaderboardRequestProcessor = function(res)
 				Hash=playerData["chartHash"],
 				-- Event charts get their own progress box, so the personal best box shouldn't display.
 				IsEvent=(playerData["rpg"] ~= nil or playerData["itl"] ~= nil),
-				-- GrooveStats doesn't keep scores for unranked charts, so there's nothing to compare against.
-				IsRanked=(playerData["isRanked"] ~= false),
 				-- Scores are in hundredths of a percent. nil means there's no score on GrooveStats yet.
 				ITG=itgEntry and itgEntry["score"] or nil,
 				EX=exEntry and exEntry["score"] or nil,

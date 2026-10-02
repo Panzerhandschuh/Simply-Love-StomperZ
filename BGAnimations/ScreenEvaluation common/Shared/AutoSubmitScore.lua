@@ -194,8 +194,6 @@ local GetPersonalBestData = function(player, submitData)
 
 	-- Event charts have their own progress box.
 	if snapshot and snapshot.IsEvent then return nil end
-	-- GrooveStats doesn't keep scores for unranked charts.
-	if (snapshot and not snapshot.IsRanked) or (submitData and submitData["isRanked"] == false) then return nil end
 	-- Nothing to compare against.
 	if not snapshot and not submitData then return nil end
 
