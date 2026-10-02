@@ -30,6 +30,70 @@ local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(player)
 -- get target score for pacemaker mode
 local target_score = LoadActor("./GetTargetScore.lua", player)
 
+-- profile best for PBScoring, as a percent (0 if there isn't one)
+local profile_best = 0
+if mods.MiniIndicator == "PBScoring" then
+	profile_best = LoadActor("./GetTargetScore.lua", player, "Personal") * 100
+end
+
+-- The previous best to compare against for PBScoring, as a percent.
+-- Prefers the GrooveStats best fetched at the start of the song (../../Shared/OnlinePersonalBest.lua),
+-- which may not have arrived yet, and falls back to the profile's best.
+local GetPreviousBest = function()
+	local online = SL[pn].OnlinePB
+	if online and online.Hash == SL[pn].Streams.Hash and online.IsRanked then
+		local score = mods.ShowExScore and online.EX or online.ITG
+		if score then return score / 100 end
+	end
+	if profile_best > 0 then return profile_best end
+	return nil
+end
+
+-- same color tiers PredictiveScoring uses
+local GetPredictiveColor = function(score)
+	if score >= 96 then return color("#21CCE8")
+	elseif score >= 89 then return color("#e29c18")
+	elseif score >= 80 then return color("#66c955")
+	elseif score >= 68 then return color("#b45cff")
+	end
+	return Color.Red
+end
+
+-- Shows the predictive score, with the comparison against the previous best in the smaller
+-- PBComparison actor underneath it.
+-- predictive_score is the best score still possible, as a percent
+local SetPBScoringText = function(self, predictive_score)
+	local previous_best = GetPreviousBest()
+	local score_text = ("%.2f%%"):format(predictive_score)
+	local comparison_text, comparison_color
+
+	if previous_best == nil then
+		-- Nothing to compare against, so this would be the first score.
+		comparison_text, comparison_color = "(New)", Color.Green
+	else
+		-- Compare in hundredths of a percent so that ties don't pick up floating point noise.
+		local delta = math.floor(predictive_score * 100 + 0.5) - math.floor(previous_best * 100 + 0.5)
+
+		if delta > 0 then
+			comparison_text, comparison_color = ("+%.2f%%"):format(delta / 100), Color.Green
+		elseif delta < 0 then
+			comparison_text, comparison_color = ("-%.2f%%"):format(-delta / 100), Color.Red
+		else
+			comparison_text, comparison_color = "0.00%", Color.White
+		end
+	end
+
+	local comparison = self:GetParent():GetChild("PBComparison")
+	self:settext(score_text)
+	comparison:settext(comparison_text)
+
+	-- With a custom MiniIndicatorColor, both keep that color.
+	if mods.MiniIndicatorColor == "Default" then
+		self:diffuse(GetPredictiveColor(predictive_score))
+		comparison:diffuse(comparison_color)
+	end
+end
+
 -- -----------------------------------------------------------------------
 -- which font should we use for the BitmapText actor?
 local font = mods.ComboFont
@@ -78,10 +142,7 @@ end
 
 -- -----------------------------------------------------------------------
 
--- the BitmapText actor
-local bmt = LoadFont(font)
-
-bmt.InitCommand=function(self)
+local ApplyMiniIndicatorColor = function(self)
 	if mods.MiniIndicatorColor == "Default"  then self:diffuse(color("#ff55cc"))
 	elseif mods.MiniIndicatorColor == "Red" then self:diffuse(Color.Red)
 	elseif mods.MiniIndicatorColor == "Blue" then self:diffuse(Color.Blue)
@@ -89,7 +150,24 @@ bmt.InitCommand=function(self)
 	elseif mods.MiniIndicatorColor == "Green" then self:diffuse(color("#00ff00"))
 	elseif mods.MiniIndicatorColor == "Magenta" then self:diffuse(color("#ff55cc"))
 	elseif mods.MiniIndicatorColor == "White" then self:diffuse(Color.White) end
-	
+end
+
+-- where the BitmapText actor ended up, so PBScoring's comparison can be placed underneath it
+local indicator_x, indicator_y, indicator_halign
+
+-- for ActionOnMissedTarget's "DimSScore"; also dims PBScoring's comparison when there is one
+local DimMiniIndicator = function(self)
+	self:diffusealpha(0.65)
+	local comparison = self:GetParent():GetChild("PBComparison")
+	if comparison then comparison:diffusealpha(0.65) end
+end
+
+-- the BitmapText actor
+local bmt = LoadFont(font)
+
+bmt.InitCommand=function(self)
+	ApplyMiniIndicatorColor(self)
+
 	self:zoom(0.35):shadowlength(1):horizalign(center)
 
 	local width = GetNotefieldWidth()
@@ -99,12 +177,16 @@ bmt.InitCommand=function(self)
 
 	-- Fix overlap issues when MeasureCounter is centered
 	-- since in this case we don't need symmetry.
+	indicator_halign = center
 	if (mods.MeasureCounterLeft == false) then
 		self:horizalign(left)
+		indicator_halign = left
 		-- nudge slightly left (15% of the width of the bitmaptext when set to "100.00%")
 		self:settext("100.00%"):addx( -self:GetWidth()*self:GetZoom() * 0.15 )
 		self:settext("")
 	end
+
+	indicator_x, indicator_y = self:GetX(), self:GetY()
 end
 
 bmt.JudgmentMessageCommand=function(self, params)
@@ -157,6 +239,8 @@ bmt.ExCountsChangedMessageCommand=function(self, params)
 				end				
 			end
 			self:settext( ("%.2f%%"):format(100-score) )
+		elseif mods.MiniIndicator == "PBScoring" then
+			SetPBScoringText(self, 100-score)
 		elseif mods.MiniIndicator == "PaceScoring" then
 			local actual = params.ExScore
 			local possible = GetPossibleExScore(params.ExCounts)
@@ -230,7 +314,7 @@ bmt.ExCountsChangedMessageCommand=function(self, params)
 		end
 		
 		-- Dim mini-indicator if target score can no longer be met.
-		if ((current_possible - current_points) > (total_possible * (1 - target_score))) and mods.ActionOnMissedTarget == "DimSScore" then self:diffusealpha(0.65) end
+		if ((current_possible - current_points) > (total_possible * (1 - target_score))) and mods.ActionOnMissedTarget == "DimSScore" then DimMiniIndicator(self) end
 	end
 end
 
@@ -326,6 +410,8 @@ bmt.SetScoreCommand=function(self, params)
 					end				
 				end
 				self:settext( ("%.2f%%"):format(score) )
+			elseif mods.MiniIndicator == "PBScoring" then
+				SetPBScoringText(self, score)
 			elseif mods.MiniIndicator == "PaceScoring" then
 				local pace = math.floor((actual_dp / current_possible_dp) * 10000) / 100
 				if mods.MiniIndicatorColor == "Default" then
@@ -383,7 +469,7 @@ bmt.SetScoreCommand=function(self, params)
 			end
 		end
 		-- Dim mini-indicator if target score can no longer be met.
-		if ((current_possible_dp - actual_dp) > (possible_dp * (1 - target_score))) and mods.ActionOnMissedTarget == "DimSScore" then self:diffusealpha(0.65) end
+		if ((current_possible_dp - actual_dp) > (possible_dp * (1 - target_score))) and mods.ActionOnMissedTarget == "DimSScore" then DimMiniIndicator(self) end
 	end
 end
 
@@ -420,5 +506,24 @@ bmt.NoGhostDataMessageCommand=function(self,params)
 	end
 end
 
+if mods.MiniIndicator ~= "PBScoring" then
+	return bmt
+end
 
-return bmt
+-- PBScoring puts the comparison against the previous best underneath the predictive score,
+-- smaller and tucked up close to it like a subscript.
+local comparison = LoadFont(font)..{
+	Name="PBComparison",
+	InitCommand=function(self)
+		ApplyMiniIndicatorColor(self)
+		self:zoom(0.35 * 0.6):shadowlength(1)
+	end,
+	-- positioned once the predictive score's InitCommand has worked out where it goes
+	OnCommand=function(self)
+		self:horizalign(indicator_halign)
+		-- GetGameplayLayout() in SL-Layout.lua reserves the extra room underneath for this line.
+		self:xy(indicator_x, indicator_y + 13)
+	end
+}
+
+return Def.ActorFrame{ bmt, comparison }

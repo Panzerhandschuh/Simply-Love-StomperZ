@@ -60,14 +60,17 @@ function GetGameplayLayout(player, reverse)
         end
     end
 
+	-- PBScoring has a smaller comparison line under the mini indicator, so it needs more room.
+	local miniIndicatorHeight = mods.MiniIndicator == "PBScoring" and 26 or 16
+
 	if mods.MeasureCounter ~= "None" and mods.MeasureCounterUp and mods.HideLookahead then
 		layout.SubtractiveScoring = { y = layout.MeasureCounter.y }
 	elseif mods.MeasureCounter ~= "None" and  mods.MeasureCounterUp then
 		layout.SubtractiveScoring = { y = bottomY + 8}
-		bottomY = bottomY + 16
+		bottomY = bottomY + miniIndicatorHeight
 	else
-		layout.SubtractiveScoring = { y = topY - 8 }
-		topY = topY - 16
+		layout.SubtractiveScoring = { y = topY - (miniIndicatorHeight - 8) }
+		topY = topY - miniIndicatorHeight
 	end
 
     -- Move the combo counter out of the way if it overlaps with any gameplay

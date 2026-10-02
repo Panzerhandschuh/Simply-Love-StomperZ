@@ -1,4 +1,6 @@
-local player = ...
+-- Pass "Machine" or "Personal" as the second argument to get that top score directly
+-- (0 if there isn't one) instead of the target score chosen in the PlayerOptions menu.
+local player, top_score_kind = ...
 local pn = ToEnumShortString(player)
 
 -- ---------------------------------------------------------------
@@ -45,6 +47,10 @@ local GetTopScore = function(kind)
 	end
 
 	return 0
+end
+
+if top_score_kind then
+	return GetTopScore(top_score_kind)
 end
 
 -- ---------------------------------------------------------------
