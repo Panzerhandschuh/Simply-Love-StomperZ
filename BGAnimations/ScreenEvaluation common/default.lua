@@ -1,5 +1,5 @@
 local Players = GAMESTATE:GetHumanPlayers()
-local NumPanes = SL.Global.GameMode=="Casual" and 1 or 10
+local NumPanes = SL.Global.GameMode=="Casual" and 1 or 11
 
 local InputHandler = nil
 local EventOverlayInputHandler = nil

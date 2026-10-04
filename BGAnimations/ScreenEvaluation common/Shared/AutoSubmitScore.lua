@@ -249,6 +249,63 @@ local ShowPersonalBest = function(overlay, player, submitData)
 	end
 end
 
+-- Fills a pane's HighScoreList with a GrooveStats leaderboard.
+-- Returns the next unfilled entry number and the player's own rank (nil if not on it).
+local FillGrooveStatsList = function(highScorePane, leaderboardData, isEx)
+	local entryNum = 1
+	local personalRank = nil
+
+	for gsEntry in ivalues(leaderboardData) do
+		local entry = highScorePane:GetChild("HighScoreList"):GetChild("HighScoreEntry"..entryNum)
+		entry:stoptweening()
+		entry:diffuse(Color.White)
+		SetEntryText(
+			gsEntry["rank"]..".",
+			GetMachineTag(gsEntry),
+			string.format("%.2f%%", gsEntry["score"]/100),
+			ParseGrooveStatsDate(gsEntry["date"]),
+			entry
+		)
+
+		-- TODO(teejusb): Determine how we want to easily display EX scores.
+		-- For now just highlight blue because it's simple.
+		if isEx then
+			entry:GetChild("Score"):diffuse(SL.JudgmentColors["ITG"][1])
+		else
+			entry:GetChild("Score"):diffuse(Color.White)
+		end
+
+		if gsEntry["isRival"] then
+			entry:diffuse(color("#BD94FF"))
+		elseif gsEntry["isSelf"] then
+			entry:diffuse(color("#A1FF94"))
+			personalRank = gsEntry["rank"]
+		end
+
+		if gsEntry["isFail"] then
+			entry:GetChild("Score"):diffuse(Color.Red)
+		end
+		entryNum = entryNum + 1
+	end
+
+	return entryNum, personalRank
+end
+
+-- Empties out a pane's HighScoreList rows from entryNum onward.
+local ClearRemainingEntries = function(highScorePane, entryNum)
+	for j=entryNum, NumEntries do
+		local entry = highScorePane:GetChild("HighScoreList"):GetChild("HighScoreEntry"..j)
+		entry:stoptweening()
+		-- We didn't get any scores if j is still == 1.
+		if j == 1 then
+			SetEntryText("", "No Scores", "", "", entry)
+		else
+			-- Empty out the remaining rows.
+			SetEntryText("---", "----", "------", "----------", entry)
+		end
+	end
+end
+
 local AutoSubmitRequestProcessor = function(res, overlay)
 	local P1SubmitText = overlay:GetChild("AutoSubmitMaster"):GetChild("P1SubmitText")
 	local P2SubmitText = overlay:GetChild("AutoSubmitMaster"):GetChild("P2SubmitText")
@@ -279,9 +336,12 @@ local AutoSubmitRequestProcessor = function(res, overlay)
 		for i=1,2 do
 			local playerStr = "player"..i
 			local entryNum = 1
-			local rivalNum = 1
+			local itgEntryNum = 1
 			-- Pane 8 is the groovestats highscores pane.
 			local highScorePane = panes:GetChild("Pane8_SideP"..i):GetChild("")
+			-- Pane 11 is the groovestats ITG highscores pane, which only exists when EX scores are shown.
+			local itgPaneFrame = panes:GetChild("Pane11_SideP"..i)
+			local itgPane = itgPaneFrame and itgPaneFrame:GetChild("") or nil
 			local QRPane = panes:GetChild("Pane7_SideP"..i):GetChild("")
 
 			local RPGPane = panes:GetChild("Pane9_SideP"..i):GetChild("")
@@ -324,38 +384,12 @@ local AutoSubmitRequestProcessor = function(res, overlay)
 					end
 
 					if leaderboardData then
-						for gsEntry in ivalues(leaderboardData) do
-							local entry = highScorePane:GetChild("HighScoreList"):GetChild("HighScoreEntry"..entryNum)
-							entry:stoptweening()
-							entry:diffuse(Color.White)
-							SetEntryText(
-								gsEntry["rank"]..".",
-								GetMachineTag(gsEntry),
-								string.format("%.2f%%", gsEntry["score"]/100),
-								ParseGrooveStatsDate(gsEntry["date"]),
-								entry
-							)
+						entryNum, personalRank = FillGrooveStatsList(highScorePane, leaderboardData, showExScore)
+						highScorePane:GetChild("ScoreTypeLabel"):playcommand("Set", { EX=showExScore and true or false })
 
-							-- TODO(teejusb): Determine how we want to easily display EX scores.
-							-- For now just highlight blue because it's simple.
-							if showExScore then
-								entry:GetChild("Score"):diffuse(SL.JudgmentColors["ITG"][1])
-							else
-								entry:GetChild("Score"):diffuse(Color.White)
-							end
-
-							if gsEntry["isRival"] then
-								entry:diffuse(color("#BD94FF"))
-								rivalNum = rivalNum + 1
-							elseif gsEntry["isSelf"] then
-								entry:diffuse(color("#A1FF94"))
-								personalRank = gsEntry["rank"]
-							end
-
-							if gsEntry["isFail"] then
-								entry:GetChild("Score"):diffuse(Color.Red)
-							end
-							entryNum = entryNum + 1
+						-- With EX scores shown in Pane8, the ITG leaderboard goes in Pane11.
+						if showExScore and itgPane and data[playerStr]["gsLeaderboard"] then
+							itgEntryNum = FillGrooveStatsList(itgPane, data[playerStr]["gsLeaderboard"], false)
 						end
 
 						QRPane:GetChild("QRCode"):queuecommand("Hide")
@@ -513,17 +547,8 @@ local AutoSubmitRequestProcessor = function(res, overlay)
 			-- Empty out any remaining entries on a successful response.
 			-- For failed responses we fallback to the scores available in the machine.
 			if res["status"] == "success" then
-				for j=entryNum, NumEntries do
-					local entry = highScorePane:GetChild("HighScoreList"):GetChild("HighScoreEntry"..j)
-					entry:stoptweening()
-					-- We didn't get any scores if i is still == 1.
-					if j == 1 then
-						SetEntryText("", "No Scores", "", "", entry)
-					else
-						-- Empty out the remaining rows.
-						SetEntryText("---", "----", "------", "----------", entry)
-					end
-				end
+				ClearRemainingEntries(highScorePane, entryNum)
+				if itgPane then ClearRemainingEntries(itgPane, itgEntryNum) end
 			end
 		end
 	end

@@ -96,4 +96,6 @@ else
 	pane[#pane+1] = LoadActor(THEME:GetPathB("", "_modules/HighScoreList.lua"), args)
 end
 
+pane[#pane+1] = LoadActor(THEME:GetPathB("", "_modules/ScoreTypeLabel.lua"), { EX=false, Text="Machine" })
+
 return pane

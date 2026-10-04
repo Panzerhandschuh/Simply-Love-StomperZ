@@ -28,6 +28,8 @@ pane[#pane+1] = Def.Sprite{
 }
 
 pane[#pane+1] = LoadActor(THEME:GetPathB("", "_modules/HighScoreList.lua"), args)
+-- ITL leaderboards are EX scores.
+pane[#pane+1] = LoadActor(THEME:GetPathB("", "_modules/ScoreTypeLabel.lua"), { EX=true })
 
 
 

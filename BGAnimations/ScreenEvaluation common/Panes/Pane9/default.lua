@@ -27,5 +27,6 @@ pane[#pane+1] = Def.Sprite{
 }
 
 pane[#pane+1] = LoadActor(THEME:GetPathB("", "_modules/HighScoreList.lua"), args)
+pane[#pane+1] = LoadActor(THEME:GetPathB("", "_modules/ScoreTypeLabel.lua"), { EX=false })
 
 return pane
