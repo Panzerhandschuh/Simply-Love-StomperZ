@@ -89,7 +89,7 @@ local CreateITLBody = function(itlData)
 	)
 end
 
-local NewScoreTag = "(New)"
+local NewScoreTag = "New!"
 
 -- Scores are in hundredths of a percent so that deltas don't pick up floating point noise.
 local CreatePBBody = function(pbData)
