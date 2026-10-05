@@ -336,12 +336,12 @@ local AutoSubmitRequestProcessor = function(res, overlay)
 		for i=1,2 do
 			local playerStr = "player"..i
 			local entryNum = 1
-			local itgEntryNum = 1
-			-- Pane 8 is the groovestats highscores pane.
+			local exEntryNum = 1
+			-- Pane 8 is the groovestats highscores pane (ITG scores).
 			local highScorePane = panes:GetChild("Pane8_SideP"..i):GetChild("")
-			-- Pane 11 is the groovestats ITG highscores pane, which only exists when EX scores are shown.
-			local itgPaneFrame = panes:GetChild("Pane11_SideP"..i)
-			local itgPane = itgPaneFrame and itgPaneFrame:GetChild("") or nil
+			-- Pane 11 is the groovestats EX highscores pane, which only exists when EX scores are shown.
+			local exPaneFrame = panes:GetChild("Pane11_SideP"..i)
+			local exPane = exPaneFrame and exPaneFrame:GetChild("") or nil
 			local QRPane = panes:GetChild("Pane7_SideP"..i):GetChild("")
 
 			local RPGPane = panes:GetChild("Pane9_SideP"..i):GetChild("")
@@ -384,12 +384,17 @@ local AutoSubmitRequestProcessor = function(res, overlay)
 					end
 
 					if leaderboardData then
-						entryNum, personalRank = FillGrooveStatsList(highScorePane, leaderboardData, showExScore)
-						highScorePane:GetChild("ScoreTypeLabel"):playcommand("Set", { EX=showExScore and true or false })
-
-						-- With EX scores shown in Pane8, the ITG leaderboard goes in Pane11.
-						if showExScore and itgPane and data[playerStr]["gsLeaderboard"] then
-							itgEntryNum = FillGrooveStatsList(itgPane, data[playerStr]["gsLeaderboard"], false)
+						if showExScore then
+							-- With EX scores shown, Pane8 is the ITG leaderboard and Pane11 is the EX one,
+							-- so ITG comes first when navigating.
+							if data[playerStr]["gsLeaderboard"] then
+								entryNum = FillGrooveStatsList(highScorePane, data[playerStr]["gsLeaderboard"], false)
+							end
+							if exPane then
+								exEntryNum, personalRank = FillGrooveStatsList(exPane, leaderboardData, true)
+							end
+						else
+							entryNum, personalRank = FillGrooveStatsList(highScorePane, leaderboardData, false)
 						end
 
 						QRPane:GetChild("QRCode"):queuecommand("Hide")
@@ -548,7 +553,7 @@ local AutoSubmitRequestProcessor = function(res, overlay)
 			-- For failed responses we fallback to the scores available in the machine.
 			if res["status"] == "success" then
 				ClearRemainingEntries(highScorePane, entryNum)
-				if itgPane then ClearRemainingEntries(itgPane, itgEntryNum) end
+				if exPane then ClearRemainingEntries(exPane, exEntryNum) end
 			end
 		end
 	end

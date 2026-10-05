@@ -64,8 +64,8 @@ pane[#pane+1] = Def.Sprite{
 }
 
 pane[#pane+1] = LoadActor(THEME:GetPathB("", "_modules/HighScoreList.lua"), args)
--- AutoSubmitScore.lua switches this to ITG if GrooveStats doesn't return an EX leaderboard.
-pane[#pane+1] = LoadActor(THEME:GetPathB("", "_modules/ScoreTypeLabel.lua"), { EX=SL[ToEnumShortString(player)].ActiveModifiers.ShowExScore })
+-- This is always the ITG leaderboard; the EX one (when shown) is Pane11.
+pane[#pane+1] = LoadActor(THEME:GetPathB("", "_modules/ScoreTypeLabel.lua"), { EX=false })
 
 
 

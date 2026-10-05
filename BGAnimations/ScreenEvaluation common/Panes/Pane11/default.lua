@@ -1,5 +1,5 @@
--- Pane11 displays the GrooveStats ITG (non-EX) leaderboard for the stepchart that was played.
--- Pane8 shows the EX leaderboard when ShowExScore is enabled, so this pane only exists then.
+-- Pane11 displays the GrooveStats EX leaderboard for the stepchart that was played.
+-- Pane8 shows the ITG leaderboard, so this pane only exists when ShowExScore is enabled.
 
 if not IsServiceAllowed(SL.GrooveStats.AutoSubmit) then return end
 
@@ -52,6 +52,6 @@ pane[#pane+1] = Def.Sprite{
 }
 
 pane[#pane+1] = LoadActor(THEME:GetPathB("", "_modules/HighScoreList.lua"), args)
-pane[#pane+1] = LoadActor(THEME:GetPathB("", "_modules/ScoreTypeLabel.lua"), { EX=false })
+pane[#pane+1] = LoadActor(THEME:GetPathB("", "_modules/ScoreTypeLabel.lua"), { EX=true })
 
 return pane
