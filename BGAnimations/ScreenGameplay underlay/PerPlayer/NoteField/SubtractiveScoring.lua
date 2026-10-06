@@ -72,11 +72,15 @@ local SetPBScoringText = function(self, predictive_score)
 		comparison_text, comparison_color = "", Color.Green
 	else
 		-- Compare in hundredths of a percent so that ties don't pick up floating point noise.
-		local delta = math.floor(predictive_score * 100 + 0.5) - math.floor(previous_best * 100 + 0.5)
+		local best_hundredths = math.floor(previous_best * 100 + 0.5)
+		local delta = math.floor(predictive_score * 100 + 0.5) - best_hundredths
 
-		-- Within 1% of the previous best, fade the green/red toward a lighter tint of itself,
-		-- so it's still clearly ahead/behind but less loud (and still readable on a dark background).
-		local fade = 0.4 * (1 - math.min(math.abs(delta) / 100, 1))
+		-- Once the predictive score is within half of the gap between a perfect score and the previous
+		-- best, fade the green/red toward a lighter tint of itself, so it's still clearly ahead/behind
+		-- but less loud (and still readable on a dark background).
+		-- Uses at least 1 (0.01%) so that a previous best of 100% doesn't divide by zero.
+		local fade_range = math.max((10000 - best_hundredths) / 2, 1)
+		local fade = 0.4 * (1 - math.min(math.abs(delta) / fade_range, 1))
 
 		if delta > 0 then
 			comparison_text = ("+%.2f%%"):format(delta / 100)
